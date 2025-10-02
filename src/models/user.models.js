@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bycrpt from 'bcrypt'
 
 const userSchema = new mongoose.Schema({
     avatar:{
@@ -57,5 +58,13 @@ const userSchema = new mongoose.Schema({
 }
 
 )      
+
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) {
+        return next()
+    }
+    this.password = await bycrpt.hash(this.password, 10)
+    next()
+})
 
 export const  User = mongoose.model("User",userSchema)
