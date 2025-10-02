@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import bycrpt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import 'dotenv/config'
+import crypto from 'crypto'
 
 const userSchema = new mongoose.Schema({
     avatar:{
@@ -59,6 +62,8 @@ const userSchema = new mongoose.Schema({
 
 )      
 
+
+
 userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) {
         return next()
@@ -69,6 +74,37 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.isPasswordCorrect = async function (password) {
     return bycrpt.compare(password,this.password)
+}
+
+userShema.methods.generateAccessToken = function () {
+    return jwt.sign({
+        _id: this._id,
+        username: this.username
+    },
+    process.env.ACCESS_TOKEN_SECRET,
+    {expiresIn: process.env.ACCESS_TOKEN_EXPIRY}
+)
+}
+
+userSchema.methods.generateRefreshToken = function () {
+    return jwt.sign({
+        _id: this._id,
+        username: this.username
+    },
+    process.env.REFRESH_TOKEN_SECRET,
+    {expiresIn: process.env.REFRESH_TOKEN_EXPIRY}
+)
+}
+
+userSchema.methods.generateTemporaryToken = function (){
+    const unhashedToken = crypto.randomBytes(20).toString("hex")
+
+    const hashedToken = crypto.createHash("sha256").update(unhashedToken).digest("Hex")
+
+    const tokenExpiry = Date.now() + (20*60*1000) //20 mins
+
+    return {unhashedToken, hashedToken, tokenExpiry}
+
 }
 
 
