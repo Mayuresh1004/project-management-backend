@@ -14,6 +14,8 @@ app.use(express.json({ limit: '16kb' }));
 app.use(express.urlencoded({ extended: true, limit: '16kb' }));
 app.use(express.static('public'));
 
+app.use(cookieParser())
+
 //cors configuration
 app.use(cors({
     origin: process.env.CORS_ORIGIN?.split(',') || 'http://localhost:5173',
@@ -26,6 +28,7 @@ app.use(cors({
 //import the routes
 import healthCheckRouter from './routes/healthcheck.routes.js';
 import authRouter from './routes/auth.routes.js'
+import cookieParser from 'cookie-parser';
 
 app.use("/api/v1/healthcheck",healthCheckRouter)
 app.use("/api/v1/auth",authRouter)

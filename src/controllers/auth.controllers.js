@@ -75,7 +75,67 @@ const resgisterUser = asyncHander(async (req,res) => {
 
 })
 
+const login = asyncHander(async (req,res) => {
+    const {email, password, username} = req.body
+
+    if (!email) {
+        throw new ApiError(400,"Email is required");
+        
+    }
+
+    const user = await User.findOne({ email })
+
+    if (!user) {
+        throw new ApiError(400,"User does not exists");
+        
+    }
+
+    const isPasswordValid = await user.isPasswordCorrect(password)
+
+    if (!isPasswordValid) {
+        throw new ApiError(400,"Invalid credentials");
+        
+    }
+
+    const {accessToken,refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+    const loggedinUser =await User.findById(user._id).select(
+        "-password -refreshToken -emailVerificationToken -emailVerificationTokenExpiry"
+    )
+
+    if (!loggedinUser) {
+        throw new ApiError(500,"Something went wrong while creating the user");
+        
+    }
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+
+    return res
+        .status(200)
+        .cookie("accessToken",accessToken,options)
+        .cookie("refreshToken",refreshToken,options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedinUser,
+                    accessToken,
+                    refreshToken
+                },
+                "User logged in successfully"
+            )
+        )
+
+})
+
 
 export {
-    resgisterUser
+    resgisterUser,
+    login
 }
+
+
