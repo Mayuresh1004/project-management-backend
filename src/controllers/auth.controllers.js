@@ -1,15 +1,15 @@
-import { User } from "../models/user.models";
-import { ApiError } from "../utils/api-errors";
-import { ApiResponse } from "../utils/api-response";
-import { asyncHander } from "../utils/async-handler";
-import { emailVerificationMailgenContent, sendEmail } from "../utils/mail";
+import { User } from "../models/user.models.js";
+import { ApiError } from "../utils/api-errors.js";
+import { ApiResponse } from "../utils/api-response.js";
+import { asyncHander } from "../utils/async-handler.js";
+import { emailVerificationMailgenContent, sendEmail } from "../utils/mail.js";
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
         const user =  await User.findById(userId)
 
-        const accessToken = user.generateAcessToken()
+        const accessToken = user.generateAccessToken()
         const refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken
@@ -27,7 +27,7 @@ const resgisterUser = asyncHander(async (req,res) => {
     const {email,password,username,role} = req.body
 
     const UserExist = await User.findOne({
-        $or: [{username,email}]
+        $or: [{ username }, { email }]
     })
 
     if (UserExist) {
@@ -38,8 +38,7 @@ const resgisterUser = asyncHander(async (req,res) => {
     const user = await User.create({
         email,
         password,
-        username,
-        isEmailVerified
+        username
     })
 
     const {unhashedToken, hashedToken, tokenExpiry} = user.generateTemporaryToken()
@@ -52,7 +51,7 @@ const resgisterUser = asyncHander(async (req,res) => {
     await sendEmail({
         email: user?.email,
         subject: "Please verify your email",
-        mailgencontent: emailVerificationMailgenContent(user.username, `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unhashedToken}`)
+        mailgenContent: emailVerificationMailgenContent(user.username, `${req.protocol}://${req.get("host")}/api/v1/users/verify-email/${unhashedToken}`)
     })
 
     const createdUser =await User.findById(user._id).select(
@@ -69,8 +68,8 @@ const resgisterUser = asyncHander(async (req,res) => {
         .json(
             new ApiResponse(
                 200,
-                {user: createdUser},
-                "User registered successfully and verification email has been sent on your email"
+                "User registered successfully and verification email has been sent on your email",
+                { user: createdUser }
             )
         )
 

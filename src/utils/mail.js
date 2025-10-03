@@ -1,7 +1,9 @@
-import { text } from "express";
 import Mailgen from "mailgen";
 import nodemailer from 'nodemailer'
-import 'dotenv/config'
+import dotenv from 'dotenv'
+dotenv.config({
+    path: "./.env"
+});
 
 
 const sendEmail = async (options) => {
@@ -9,7 +11,7 @@ const sendEmail = async (options) => {
         theme: "default",
         product: {
             name: "Task Manager",
-            link: "https:taskmanagerlink.com"
+            link: "https://taskmanagerlink.com"
         }
     })
 
@@ -20,10 +22,10 @@ const sendEmail = async (options) => {
     // Looking to send emails in production? Check out our Email API/SMTP product!
     const transporter = nodemailer.createTransport({
     host: process.env.MAILTRAP_SMTP_HOST,
-    port: MAILTRAP_SMTP_PORT,
+    port: Number(process.env.MAILTRAP_SMTP_PORT),
     auth: {
-        user: MAILTRAP_SMTP_USER,
-        pass: MAILTRAP_SMTP_PASS
+        user: process.env.MAILTRAP_SMTP_USER,
+        pass: process.env.MAILTRAP_SMTP_PASS
     }
     });
 

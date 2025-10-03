@@ -76,7 +76,7 @@ userSchema.methods.isPasswordCorrect = async function (password) {
     return bycrpt.compare(password,this.password)
 }
 
-userShema.methods.generateAccessToken = function () {
+userSchema.methods.generateAccessToken = function () {
     return jwt.sign({
         _id: this._id,
         username: this.username
