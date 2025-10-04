@@ -4,6 +4,7 @@ import { ApiResponse } from "../utils/api-response.js";
 import { asyncHander } from "../utils/async-handler.js";
 import { emailVerificationMailgenContent, forgotPasswordMailgenContent, sendEmail } from "../utils/mail.js";
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -180,6 +181,7 @@ const verifyEmail = asyncHander( async (req,res) => {
     }
 
     let hashedToken = crypto.createHash("sha256").update(verificationToken).digest("hex")
+    
 
     const user = await User.findOne({
         emailVerificationToken: hashedToken,
@@ -223,7 +225,7 @@ const resendEmailVerification = asyncHander( async (req,res) => {
     }
 
     if (user.isEmailVerified) {
-        throw new ApiError(409,"Email is nit verified");
+        throw new ApiError(409,"Email is already verified");
         
     }
 
@@ -293,7 +295,7 @@ const refreshAccessToken = asyncHander( async (req,res) => {
         return res
             .status(200)
             .cookie("accessToken",accessToken,options)
-            .cookie("refreshToken",refreshTokenToken,options)
+            .cookie("refreshToken",newRefreshToken,options)
             .json(
                 new ApiResponse(
                     200,
@@ -387,11 +389,11 @@ const resetForgotPassword = asyncHander( async (req,res) => {
 })
 
 const changeCurrentPassword = asyncHander( async (req,res) => {
-    const {oldpassword, newPassword} = req.body
+    const {oldPassword, newPassword} = req.body
 
     const user = await User.findById(req.user?._id)
 
-    const isPasswordValid = await user.isPasswordCorrect(oldpassword)
+    const isPasswordValid = await user.isPasswordCorrect(oldPassword)
 
     if (!isPasswordValid) {
         throw new ApiError(400,"Invalid Old Password");
