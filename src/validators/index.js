@@ -18,4 +18,7 @@ const userLoginValidator = () => {
     ]
 }
 
+
+
+
 export { userRegistrationValidator , userLoginValidator }
